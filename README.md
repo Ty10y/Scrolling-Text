@@ -1,15 +1,15 @@
-# Scrolling-Text
+# Scrolling Text
 
-A storefront-style scrolling marquee sign as a single self-contained HTML file. No dependencies, no build step, no backend — just open `index.html` in a browser.
+A scrolling text display as a single self-contained HTML file. No dependencies, no build step, no backend — just open `index.html` in a browser.
 
 ## Features
 
-- Type a message and display it as a full-screen scrolling sign
+- Type a message and display it as a full-screen scrolling text display
 - Customizable text color (color picker with live hex readout)
 - Adjustable scroll speed (2–30 seconds per pass)
 - Shareable URLs — settings and message are encoded in query params
 - Mobile-friendly with responsive font sizing and 44px+ tap targets
-- Tap/click anywhere on the sign to return to the input screen
+- Tap/click anywhere on the display to return to the input screen
 
 ## URL Parameters
 
@@ -36,7 +36,7 @@ For the **Copy shareable link** feature to work (clipboard API), the page must b
 To get a shareable `https://` URL:
 1. Push this repo to GitHub
 2. Go to **Settings → Pages** and set the source to the `main` branch
-3. Your sign will be live at `https://<username>.github.io/Scrolling-Text/`
+3. Your display will be live at `https://<username>.github.io/Scrolling-Text/`
 
 ## Defaults
 
