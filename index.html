@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Marquee Sign</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    font-family: system-ui, sans-serif;
+    background: #0a0a0a;
+    color: #fff;
+    overflow: hidden;
+  }
+
+  /* Input view */
+  #inputView {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 24px;
+  }
+  #inputView h1 {
+    font-weight: 600;
+    font-size: 1.5rem;
+    margin-bottom: 8px;
+  }
+  #textBox {
+    width: 100%;
+    max-width: 420px;
+    padding: 14px 16px;
+    font-size: 1rem;
+    border: 1px solid #333;
+    border-radius: 8px;
+    background: #161616;
+    color: #fff;
+  }
+  #textBox:focus { outline: none; border-color: #ff8c00; }
+  #submitBtn {
+    padding: 14px 28px;
+    font-size: 1rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    background: #ff8c00;
+    color: #111;
+    cursor: pointer;
+    width: 100%;
+    max-width: 420px;
+  }
+  #submitBtn:hover { background: #ffa733; }
+
+  #optionsBtn {
+    margin-top: 4px;
+    padding: 12px 18px;
+    font-size: 0.95rem;
+    border: 1px solid #333;
+    border-radius: 8px;
+    background: transparent;
+    color: #aaa;
+    cursor: pointer;
+    width: 100%;
+    max-width: 420px;
+  }
+  #optionsBtn:hover { border-color: #555; color: #fff; }
+
+  /* Options modal */
+  #modalBackdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+  }
+  #modalBackdrop.active { display: flex; }
+  #modal {
+    background: #161616;
+    border: 1px solid #333;
+    border-radius: 12px;
+    padding: 24px;
+    margin: 16px;
+    width: 100%;
+    max-width: 360px;
+    max-height: 90vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  #modal h2 { font-size: 1.2rem; font-weight: 600; }
+  .field { display: flex; flex-direction: column; gap: 8px; }
+  .field label { font-size: 0.9rem; color: #ccc; }
+  .field .row { display: flex; align-items: center; gap: 12px; }
+  #colorPicker {
+    width: 56px; height: 44px; padding: 0;
+    border: 1px solid #333; border-radius: 6px;
+    background: none; cursor: pointer;
+  }
+  #colorHex { font-size: 0.9rem; color: #888; }
+  #speedSlider { flex: 1; height: 28px; accent-color: #ff8c00; }
+  #speedVal { font-size: 0.9rem; color: #888; min-width: 64px; text-align: right; }
+  #closeModal {
+    padding: 14px 24px;
+    font-size: 1rem; font-weight: 600;
+    border: none; border-radius: 8px;
+    background: #ff8c00; color: #111; cursor: pointer;
+    width: 100%;
+  }
+  #closeModal:hover { background: #ffa733; }
+  #copyLinkBtn {
+    padding: 14px 24px;
+    font-size: 1rem; font-weight: 600;
+    border: 1px solid #333; border-radius: 8px;
+    background: transparent; color: #ccc; cursor: pointer;
+    width: 100%;
+  }
+  #copyLinkBtn:hover { border-color: #555; color: #fff; }
+
+  /* Sign view */
+  #signView {
+    display: none;
+    height: 100%;
+    align-items: center;
+    background: #000;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  #signView.active { display: flex; }
+
+  #scrollText {
+    display: inline-block;
+    padding-left: 100vw;
+    font-size: min(18vh, 28vw);
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: #ff7a00;
+    text-shadow: 0 0 12px rgba(255,122,0,0.6);
+    animation: scroll 12s linear infinite;
+  }
+  @keyframes scroll {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-100%); }
+  }
+</style>
+</head>
+<body>
+  <div id="inputView">
+    <h1>Storefront Sign</h1>
+    <input id="textBox" type="text" placeholder="Type your message..." autocomplete="off">
+    <button id="submitBtn">Display</button>
+    <button id="optionsBtn">Options</button>
+  </div>
+
+  <div id="modalBackdrop">
+    <div id="modal">
+      <h2>Options</h2>
+      <div class="field">
+        <label for="colorPicker">Text color</label>
+        <div class="row">
+          <input id="colorPicker" type="color" value="#ff7a00">
+          <span id="colorHex">#ff7a00</span>
+        </div>
+      </div>
+      <div class="field">
+        <label for="speedSlider">Scroll speed</label>
+        <div class="row">
+          <input id="speedSlider" type="range" min="2" max="30" step="1" value="12">
+          <span id="speedVal">12s / pass</span>
+        </div>
+      </div>
+      <button id="copyLinkBtn">Copy shareable link</button>
+      <button id="closeModal">Done</button>
+    </div>
+  </div>
+
+  <div id="signView">
+    <span id="scrollText"></span>
+  </div>
+
+  <script>
+    const inputView = document.getElementById('inputView');
+    const signView = document.getElementById('signView');
+    const textBox = document.getElementById('textBox');
+    const submitBtn = document.getElementById('submitBtn');
+    const scrollText = document.getElementById('scrollText');
+    const optionsBtn = document.getElementById('optionsBtn');
+    const modalBackdrop = document.getElementById('modalBackdrop');
+    const closeModal = document.getElementById('closeModal');
+    const colorPicker = document.getElementById('colorPicker');
+    const colorHex = document.getElementById('colorHex');
+    const speedSlider = document.getElementById('speedSlider');
+    const speedVal = document.getElementById('speedVal');
+    const copyLinkBtn = document.getElementById('copyLinkBtn');
+
+    let textColor = '#ff7a00';
+    let speed = 12; // seconds per pass
+
+    function applyColor() {
+      textColor = colorPicker.value;
+      colorHex.textContent = textColor;
+      scrollText.style.color = textColor;
+      scrollText.style.textShadow = '0 0 12px ' + textColor + '99';
+    }
+    function applySpeed() {
+      speed = +speedSlider.value;
+      speedVal.textContent = speed + 's / pass';
+      scrollText.style.animationDuration = speed + 's';
+    }
+
+    colorPicker.addEventListener('input', applyColor);
+    speedSlider.addEventListener('input', applySpeed);
+    optionsBtn.addEventListener('click', () => modalBackdrop.classList.add('active'));
+    closeModal.addEventListener('click', () => modalBackdrop.classList.remove('active'));
+    modalBackdrop.addEventListener('click', e => {
+      if (e.target === modalBackdrop) modalBackdrop.classList.remove('active');
+    });
+
+    function showSign() {
+      const msg = textBox.value.trim();
+      if (!msg) { textBox.focus(); return; }
+      scrollText.textContent = msg;
+      inputView.style.display = 'none';
+      signView.classList.add('active');
+    }
+
+    function showInput() {
+      signView.classList.remove('active');
+      inputView.style.display = 'flex';
+      // Strip query params so a refresh doesn't jump back to scrolling
+      history.replaceState(null, '', location.pathname);
+      textBox.focus();
+      textBox.select();
+    }
+
+    submitBtn.addEventListener('click', showSign);
+    textBox.addEventListener('keydown', e => { if (e.key === 'Enter') showSign(); });
+    signView.addEventListener('click', showInput);
+
+    function buildShareUrl() {
+      const params = new URLSearchParams();
+      const msg = textBox.value.trim();
+      if (msg) params.set('text', msg);
+      params.set('color', colorPicker.value.replace('#', ''));
+      params.set('speed', speedSlider.value);
+      return location.origin + location.pathname + '?' + params.toString();
+    }
+
+    copyLinkBtn.addEventListener('click', async () => {
+      const url = buildShareUrl();
+      const original = copyLinkBtn.textContent;
+      try {
+        await navigator.clipboard.writeText(url);
+        copyLinkBtn.textContent = 'Copied!';
+      } catch {
+        // Fallback for browsers/contexts without clipboard access
+        prompt('Copy this link:', url);
+        copyLinkBtn.textContent = original;
+        return;
+      }
+      setTimeout(() => { copyLinkBtn.textContent = original; }, 1500);
+    });
+
+    // Read settings from the URL on load
+    function applyFromUrl() {
+      const params = new URLSearchParams(location.search);
+
+      const color = params.get('color');
+      if (color) {
+        const hex = '#' + color.replace(/^#/, '');
+        if (/^#[0-9a-fA-F]{6}$/.test(hex)) colorPicker.value = hex;
+      }
+
+      const sp = params.get('speed');
+      if (sp && !isNaN(sp)) {
+        speedSlider.value = Math.min(30, Math.max(2, parseInt(sp, 10)));
+      }
+
+      applyColor();
+      applySpeed();
+
+      const text = params.get('text');
+      if (text && text.trim()) {
+        textBox.value = text;
+        showSign();
+        return true;
+      }
+      return false;
+    }
+
+    if (!applyFromUrl()) {
+      textBox.focus();
+    }
+  </script>
+</body>
+</html>
